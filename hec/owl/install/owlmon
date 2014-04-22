@@ -1,0 +1,36 @@
+#! /bin/sh
+# /etc/init.d/owlmon
+
+### BEGIN INIT INFO
+# Provides:          owlmon
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Simple script to start the owl-mon program
+# Description:       owl-mon provides the http://pint1.servebeer.com site works with start and stop only
+### END INIT INFO
+
+# run every time commands here
+
+# none
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    echo "Starting owlmon"
+    # run application you want to start
+    /home/pi/owl/bin/startowl
+    ;;
+  stop)
+    echo "Stopping owlmon"
+    # kill application you want to stop
+    killall owl-rx-data-v1.py
+    ;;
+  *)
+    echo "Usage: /etc/init.d/owlmon {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0

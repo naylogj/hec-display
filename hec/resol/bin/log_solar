@@ -1,0 +1,24 @@
+#!/bin/bash
+
+/home/pi/resol/bin/grab.py
+
+fname=`date +%j_%Y_%m_%e | tr -d " " `
+
+suffix="_Solar-data"
+
+fname=`echo $fname$suffix`
+
+data=`/home/pi/resol/bin/process_data | grep -v "00:00" | sed -e '/^$/d' ` 
+
+if [ -z "$data" ]
+then
+	# no data returned so exit gracefully
+	a=0 # do something
+else
+	# calculate the temp gain and hours pumped.
+	data2=`/home/pi/resol/bin/min-max-hrs.py -i $fname`
+	# append to data
+	data2=$data$data2
+	echo $data >> /home/pi/resol/data/$fname
+	echo $data2 > /home/pi/resol/www/hwinst.json
+fi
