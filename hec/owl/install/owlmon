@@ -8,7 +8,7 @@
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Simple script to start the owl-mon program
-# Description:       owl-mon provides the http://pint1.servebeer.com site works with start and stop only
+# Description:       owl-mon provides the http://pint1.ddns.net site works with start and stop only
 ### END INIT INFO
 
 # run every time commands here
@@ -25,7 +25,7 @@ case "$1" in
   stop)
     echo "Stopping owlmon"
     # kill application you want to stop
-    killall owl-rx-data-v1.py
+    sudo killall owl-rx-data-v1.py
     ;;
   *)
     echo "Usage: /etc/init.d/owlmon {start|stop}"

@@ -1,0 +1,13 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<Meta HTTP-EQUIV="Refresh" Content="55">
+</head>
+<body>
+<img src="../images/frontscreen.png" border="1" usemap="#hecmap">
+
+<map name="hecmap">
+	<area shape="rect" coords="0,450,266,500" href="http://192.168.1.76:8080" alt="HeatPi">
+</map>
+</body>
+</html>

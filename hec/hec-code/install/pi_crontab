@@ -1,0 +1,8 @@
+# 
+# Append the last four lines of this file to user Pi's crontab
+# 
+# m h  dom mon dow   command
+1,11,21,31,41,51 * * * * /home/pi/resol/bin/log_solar		# routine to collect Solar Thermal data and process it
+2 2,6,10,14,18,22 * * * /home/pi/restart			# restart tightvncserver
+10 0 1 * * /bin/echo "0.00" > /home/pi/owl/data/month-savings	# on first day of month clear month total
+30 23 * * * /usr/bin/python2.7 /home/pi/hec-code//daily.py	# add daily total to month total

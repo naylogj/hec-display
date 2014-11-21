@@ -1,24 +1,33 @@
 #!/bin/bash
 
+# Get real time data from the Resol VBUS Controller
 /home/pi/resol/bin/grab.py
 
+# Create file name for the day
 fname=`date +%j_%Y_%m_%e | tr -d " " `
-
 suffix="_Solar-data"
-
 fname=`echo $fname$suffix`
 
+# process the data to extract the records we want
 data=`/home/pi/resol/bin/process_data | grep -v "00:00" | sed -e '/^$/d' ` 
 
 if [ -z "$data" ]
 then
 	# no data returned so exit gracefully
-	a=0 # do something
+	a=0
 else
+	# put here the code to send data to rrd and also put data in file
+	#  rrd
+	#
 	# calculate the temp gain and hours pumped.
 	data2=`/home/pi/resol/bin/min-max-hrs.py -i $fname`
 	# append to data
 	data2=$data$data2
 	echo $data >> /home/pi/resol/data/$fname
 	echo $data2 > /home/pi/resol/www/hwinst.json
+	# send instantaneous data to pi1 to be viewed by web browser/HEC code
+	# no longer needed as HEC Code now local to this pi
+	# sshpass -p 'xxxxxxx' scp /home/pi/resol/www/hwinst.json pi@pi1:/var/www/data/hwinst.json
+
+
 fi

@@ -1,0 +1,12 @@
+# called by cron every 4 hours
+
+# find the display process and kill it 
+pid=`ps -ef | grep "nook-web" | grep -v grep | cut -c11-15`
+sudo kill -15 $pid
+
+# restart tight vnc server which also restarts the noo-web process
+# via the ~/.vnc/xstartup file
+
+sudo /etc/init.d/tightvncserver stop
+sleep 1
+sudo /etc/init.d/tightvncserver start

@@ -1,9 +1,9 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python
 # -------------------------------------------------------------------
 # Python and pygame Programme for Home Energy Centre
 # Designed to run on a 800x600 screen of the Nook e-reader
 # Author G. Naylor April 2014
-# V3.01
+# V3.03
 
 # Progress Checker & Version Roadmap
 # V1    -  screen design and functions to draw screen completed
@@ -19,6 +19,8 @@
 # 
 # V3.00 -  implement nice icons for PV and Solar - completed
 # V3.01 -  implemented earnt generated calculation - completed
+# V3.02 -  added monthly cumulative total capability for solar pv - completed
+# V3.03 -  added Pushover functionality to send messges - completed
 # to-do -  write routine for handling Elec packet from owl.
 
 # Begin
@@ -38,7 +40,6 @@ pgmin = 60 * pgsec	# 1 minute in milliseconds
 pghour = 60 * pgmin # 1 hour in milliseconds
 
 # Feed in tarrif and Export variables
-# Replace with Values for your situation in the 3 lines below
 fit = float(0.149)	# FEED IN TARRIF 14.9 pence per kWh generated
 ex  = float(0.0464) 	# Export tarrif 4.64 pence per kWh generated
 unitp = float(0.129)	# price per unit of electricity bought
@@ -88,8 +89,10 @@ def BuildFrontScreen():
 	screen.blit(myFont.render("Solar Thermal Water", 0, (fnt_color)), (CO+CW+TOH,TH+CO+TOV))
 	screen.blit(myFont.render("Weather", 0, (fnt_color)), (CO+CW+CW+TOH,TH+CO+TOV))
 	# add buttons for automation , graphs and Weather
-	screen.blit(myFont.render("Graphs", 2, (fnt_color)), (CO+TOH,BH+CO+TOV))
-	screen.blit(myFont.render("Automation", 2, (fnt_color)), (CO+CW+TOH,BH+CO+TOV))
+	screen.blit(myFont.render("Heating", 2, (fnt_color)), (CO+TOH,BH+CO+TOV))
+	screen.blit(myFont.render("Powererd by Pi (c)", 2, (fnt_color)), (CO+CW+TOH,BH+CO+TOV))
+	image = pygame.image.load("/home/pi/hec-code/images/pi-logo.png")
+	screen.blit(image, (CO+CW+CW+TOH-60,BH+CO+TOV-5))
 	screen.blit(myFont.render("Weather Forecast", 2, (fnt_color)), (CO+CW+CW+TOH,BH+CO+TOV))
 	return
 
@@ -101,12 +104,12 @@ def GetElecPV():
 	# Read from the object, storing the page's contents in 's'.
 	# 
 	try:
-		if debug: print "FILE is %s " % (solarfile)
+		if debug: print("FILE is %s " % (solarfile))
 		f = open(solarfile, "r")
 		s = f.read()
 		f.close()
 		values1 = re.split(",", s.rstrip())
-		if len(values1)<>5:
+		if len(values1) != 5:
 			values1=['S','0.0','0.0',0.0,0.0]
 	except:
 		values1=['S','0.0','0.0',100.0,0.0]
@@ -128,7 +131,6 @@ def DisplayElecPV(values1):
 	gens="Gen. Today:   {:.2f} kWh".format(gentotal)
 	exps="Export Today: {:.2f} kWh".format(exptotal)
 	# calculate money earnt so far today
-	#gen=float(int(gentotal))	# round down to lower kWh
 	gen=float(gentotal)		# 
 	exx=float(exptotal)
 	earnt = (gen*fit) + (0.5*gen*ex)	# 50% export assumed
@@ -136,18 +138,41 @@ def DisplayElecPV(values1):
 	# calculate the saving today from not buying x kWh in from the grid
 	avoidex = (gen-exx)*unitp		# avoided cost of elec not bought 
 	avoids = "Cost avoided GBP {:.2f}".format(avoidex)
+	# update monthly total
+	monthtotalfile = "/home/pi/owl/data/month-savings"
+	daytotalfile = "/home/pi/owl/data/daily-total"
+	try:
+		if debug: print("FILE is %s " % (monthtotalfile))
+		f = open(monthtotalfile, "r")
+		s = f.read()
+		f.close()
+		if debug: print(s)
+		mtold=float(s)
+		mtnow=float(mtold)+float(earnt)+float(avoidex)
+		mtnows = "Saved in month GBP {:.2f}".format(mtnow)
+		if debug: print(mtnows)
+		f = open(daytotalfile, "w")
+		f.write(str(earnt + avoidex))
+		f.close()
+	except:
+		mtnow=0.00
+		mtnows = "Saved this month GBP {:.2f}".format(mtnow)
+	if debug: print("New cumulative monthly cost savings are:" % (mtnow))
+	
 	# update the screen with the latest solar PV Electricity information.
 	pygame.draw.rect(screen, BG_COLOR, ((CO+TOH,TH+RH+TOV), (RW, BH-TH-RH-TOV-LO)), 0) # blank first column.
 	screen.blit(myeFont.render("Gen. now:      "+ values1[1] + " W", 0, (fnt_color)), (CO+TOH,TH+RH+CO+TOV))
 	screen.blit(myeFont.render("Export now:    "+ values1[2] + " W", 0, (fnt_color)), (CO+TOH,TH+RH+CO+TOV+efontsize))
 	screen.blit(myeFont.render(gens, 0, (fnt_color)), (CO+TOH,TH+RH+CO+TOV+(2*efontsize)))
 	screen.blit(myeFont.render(exps, 0, (fnt_color)), (CO+TOH,TH+RH+CO+TOV+(3*efontsize)))
-	screen.blit(myeFont.render(earnts, 0, (fnt_color)), (CO+TOH,TH+RH+CO+TOV+(5*efontsize)))
-	screen.blit(myeFont.render(avoids, 0, (fnt_color)), (CO+TOH,TH+RH+CO+TOV+(6*efontsize)))
+	screen.blit(myeFont.render(earnts, 0, (fnt_color)), (CO+TOH,TH+RH+CO+TOV+(4*efontsize)))
+	screen.blit(myeFont.render(avoids, 0, (fnt_color)), (CO+TOH,TH+RH+CO+TOV+(5*efontsize)))
+	screen.blit(myeFont.render(mtnows, 0, (fnt_color)), (CO+TOH,TH+RH+CO+TOV+(6*efontsize)))
+
 	# display weather icon (from file)
 	if values1[5] != 'None':
 		image = pygame.transform.scale2x(pygame.image.load(values1[5]))
-		screen.blit(image, (70, BH-160))
+		screen.blit(image, (70, BH-170))
 	# pygame.display.flip()
 	return
 
@@ -158,7 +183,7 @@ def GetSolar():
 	
 	try:
 		if debug:
-		    print "FILE is %s " % (hwurl)
+		    print("FILE is %s " % (hwurl))
 		f = open(hwurl, "r")
 		s = f.read()
 		f.close()
@@ -191,8 +216,8 @@ def DisplaySolarThermal(values2):
 	screen.blit(myFont.render("Pumped:  " + str(values2[4]) + " hrs", 0, (fnt_color)), (CW+CO+TOH,TH+RH+CO+TOV+(3*efontsize)))
 	screen.blit(myFont.render("Pumped Today:  " + str(values2[7]) + " hrs", 0, (fnt_color)), (CW+CO+TOH,TH+RH+CO+TOV+(4*efontsize)))
 	screen.blit(myFont.render("Gain Today:  " + str(values2[6]) + " C", 0, (fnt_color)), (CW+CO+TOH,TH+RH+CO+TOV+(5*efontsize)))
-	screen.blit(myFont.render("Last Updated:  " + str(values2[0]), 0, (fnt_color)), (CW+CO+TOH,TH+RH+CO+TOV+(6*efontsize)))
-	
+	screen.blit(myFont.render(str(values2[0]), 0, (fnt_color)), (CW+CW-60,BH-TOV-efontsize-10))
+		
 	# display weather icon (from file)
 	if values2[8] != 'None':
 		image = pygame.transform.scale2x(pygame.image.load(values2[8]))
@@ -203,10 +228,9 @@ def DisplaySolarThermal(values2):
 
 def GetWeather():
 	# Fetch data from weather underground
-	# API Key is: record your API key here.
+	# API Key is: 6bff94885d7d0a2c
 	try:
-		# replace <your-api-key> . <country> and <town>  in line below with your api key, country and town.
-		f = urllib2.urlopen('http://api.wunderground.com/api/<your-api-key>/geolookup/conditions/q/<country>/<town>.json',None,4)
+		f = urllib2.urlopen('http://api.wunderground.com/api/6bff94885d7d0a2c/geolookup/conditions/q/UK/Rugby.json',None,4)
 		json_string = f.read() 
 		f.close()
 		parsed_json = json.loads(json_string) 
@@ -223,16 +247,16 @@ def GetWeather():
 		forecast_url = parsed_json['current_observation']['forecast_url']
 		if debug:
 			print
-			print "Weather is currently %s" % (weather)
-			print "Current temperature in %s is: %s C" % (location, temp_c)
-			print "Wind %s MPH" % (wind)
-			print "Gusting to %s MPH" % (wind_gust)
-			print "Rain today %s mm" % (precip_today)
-			print "Icon URL is: %s " % (icon_url)
-			print "Forecast URL is: %s " % (forecast_url)
-			print "Wind is: %s" % (windstring)
-			print "Relative Humidity is %s" % (rel_humidity)
-			print "Feelslike: %s" % (feelslike)
+			print("Weather is currently %s" % (weather))
+			print("Current temperature in %s is: %s C" % (location, temp_c))
+			print("Wind %s MPH" % (wind))
+			print("Gusting to %s MPH" % (wind_gust))
+			print("Rain today %s mm" % (precip_today))
+			print("Icon URL is: %s " % (icon_url))
+			print("Forecast URL is: %s " % (forecast_url))
+			print("Wind is: %s" % (windstring))
+			print("Relative Humidity is %s" % (rel_humidity))
+			print("Feelslike: %s" % (feelslike))
 			print 
 			#print json_string 
 		# Get Weather Icon and write to file (icon.jpg, pass file name to display function)
@@ -327,3 +351,4 @@ while 1:
 	pygame.display.flip()		# update screen
             
 #---------------------------------------------------------------------
+

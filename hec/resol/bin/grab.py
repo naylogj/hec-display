@@ -41,5 +41,9 @@ while cnt < LOOP:
 		data = ser.read(w)
 		f.write(data)
 		cnt = cnt + w
+#		print(cnt)
+#		for c in part:
+#			print("0x%02X" % c,sep=" ")
+
 f.close()
 ser.close()
