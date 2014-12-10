@@ -228,9 +228,9 @@ def DisplaySolarThermal(values2):
 
 def GetWeather():
 	# Fetch data from weather underground
-	# API Key is: 6bff94885d7d0a2c
+	# replace "your_API_key" _town_ and _country_ with your Key, your town location and country location
 	try:
-		f = urllib2.urlopen('http://api.wunderground.com/api/6bff94885d7d0a2c/geolookup/conditions/q/UK/Rugby.json',None,4)
+		f = urllib2.urlopen('http://api.wunderground.com/api/"your_API_key"/geolookup/conditions/q/_country_/_town_.json',None,4)
 		json_string = f.read() 
 		f.close()
 		parsed_json = json.loads(json_string) 
@@ -311,14 +311,18 @@ screentime = pgsec * 22 	# 22 secs
 clock = pygame.time.Clock()
 
 BuildFrontScreen()				# display the screen
-pygame.display.flip()		# update screen
+pygame.display.flip()
+		# update screen
 #DisplayElecTemp(GetElecTemp())	# display the elec info
 DisplayElecPV(GetElecPV())
-pygame.display.flip()		# update screen
+pygame.display.flip()
+		# update screen
 DisplaySolarThermal(GetSolar())	# display the solar info
-pygame.display.flip()		# update screen
+pygame.display.flip()
+		# update screen
 DisplayWeather(GetWeather())	# display the weather info
-pygame.display.flip()		# update screen
+pygame.display.flip()
+		# update screen
 
 #set event timers
 pygame.time.set_timer(pygame.USEREVENT+1, electime)
@@ -348,7 +352,8 @@ while 1:
 		elif event.type == pygame.USEREVENT+4:
 			pygame.image.save(screen, "/var/www/images/frontscreen.png")	# print screen to web page
 
-	pygame.display.flip()		# update screen
+	pygame.display.flip()
+		# update screen
             
 #---------------------------------------------------------------------
 
